@@ -2,25 +2,25 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install build dependencies for native modules (better-sqlite3) and TypeScript toolchain
+# Install build dependencies for native modules (better-sqlite3)
 RUN apk add --no-cache python3 make g++
 
-# Build frontend (need devDeps: TypeScript, Vite)
+# Build frontend
 COPY frontend/package*.json frontend/
-RUN cd frontend && npm install --include=dev
+RUN cd frontend && npm install
 COPY frontend/ frontend/
-RUN cd frontend && npx vite build
+RUN cd frontend && npm run build
 
-# Install backend deps with native compilation
+# Install backend deps (with native compilation)
 COPY backend/package*.json backend/
-RUN cd backend && npm install
+RUN cd backend && npm install --production
 
 FROM node:20-alpine
 
 WORKDIR /app
 
-# Need python3/make/g++ at runtime for better-sqlite3 if rebuilding, but binary should be bundled
-RUN apk add --no-cache python3 make g++
+# Runtime dependencies for native modules (better-sqlite3 needs libstdc++)
+RUN apk add --no-cache libstdc++
 
 COPY --from=builder /app/frontend/dist frontend/dist
 COPY --from=builder /app/backend/node_modules backend/node_modules
