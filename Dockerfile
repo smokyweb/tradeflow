@@ -2,15 +2,16 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Build frontend
+# Build frontend (need devDeps for TypeScript + Vite)
 COPY frontend/package*.json frontend/
-RUN cd frontend && npm install
+RUN cd frontend && npm install --include=dev
 COPY frontend/ frontend/
-RUN cd frontend && npm run build
+# Use vite directly to avoid tsc path issues
+RUN cd frontend && npx vite build
 
-# Install backend deps
+# Install backend prod deps
 COPY backend/package*.json backend/
-RUN cd backend && npm install --production
+RUN cd backend && npm install --omit=dev
 
 FROM node:20-alpine
 
