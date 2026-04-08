@@ -1,0 +1,36 @@
+services:
+  backend:
+    working_dir: /app/backend
+    build:
+      context: ./backend
+      dockerfile_inline: |
+        FROM node:20-alpine
+        WORKDIR /app/backend
+        COPY package*.json ./
+        RUN npm install
+        COPY . .
+        CMD ["node", "--watch", "server.js"]
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./backend:/app/backend
+      - /app/backend/node_modules
+
+  frontend:
+    working_dir: /app/frontend
+    build:
+      context: ./frontend
+      dockerfile_inline: |
+        FROM node:20-alpine
+        WORKDIR /app/frontend
+        COPY package*.json ./
+        RUN npm install
+        COPY . .
+        CMD ["npm", "run", "dev", "--", "--host"]
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app/frontend
+      - /app/frontend/node_modules
+    depends_on:
+      - backend
