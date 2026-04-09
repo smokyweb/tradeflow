@@ -10,6 +10,12 @@ const isProduction = process.env.NODE_ENV === 'production';
 app.use(cors());
 app.use(express.json());
 
+// Request logger
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.path} (originalUrl: ${req.originalUrl})`);
+  next();
+});
+
 // API routes
 app.use('/api', routes);
 
