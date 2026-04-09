@@ -16,13 +16,23 @@ app.use((req, res, next) => {
   next();
 });
 
-// Debug endpoint - returns request info as JSON  
+// Debug endpoint - returns request info as JSON
 app.get('/debug-request', (req, res) => {
-  res.json({ path: req.path, originalUrl: req.originalUrl, method: req.method, headers: req.headers });
+  res.json({ path: req.path, originalUrl: req.originalUrl, method: req.method });
 });
 
-// API routes
+// API routes - primary path (when proxy preserves /api prefix)
 app.use('/api', routes);
+
+// API routes - fallback path (when proxy strips /api prefix)
+// Handles cases where nginx strips the /api prefix before forwarding
+const apiPaths = ['/strategies', '/trades', '/portfolio', '/metrics', '/equity-curve'];
+app.use('/', (req, res, next) => {
+  if (apiPaths.some(p => req.path === p || req.path.startsWith(p + '/'))) {
+    return routes(req, res, next);
+  }
+  next();
+});
 
 // In production, serve frontend static files
 if (isProduction) {
