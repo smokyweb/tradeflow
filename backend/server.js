@@ -16,6 +16,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// Debug endpoint - returns request info as JSON  
+app.get('/debug-request', (req, res) => {
+  res.json({ path: req.path, originalUrl: req.originalUrl, method: req.method, headers: req.headers });
+});
+
 // API routes
 app.use('/api', routes);
 
